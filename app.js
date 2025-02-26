@@ -20,7 +20,7 @@ app.use(passport.session());
 passport.use(new GoogleStrategy({
   clientID: '816883803515-tefohtu8b245hvtmuph3sa7m0as725th.apps.googleusercontent.com', // Replace with your Google Client ID
   clientSecret: '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', // Replace with your Google Client Secret
-  callbackURL: 'http://localhost:3000/auth/google/callback',
+  callbackURL: 'https://google-auth-9uco.onrender.com/auth/google/callback',
   passReqToCallback: true, // Allow passing the request to store state manually
 }, (req, accessToken, refreshToken, profile, done) => {
   return done(null, profile);
