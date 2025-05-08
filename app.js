@@ -23,6 +23,7 @@ passport.use(new GoogleStrategy({
   callbackURL: 'https://google-auth-9uco.onrender.com/auth/google/callback',
   passReqToCallback: true, // Allow passing the request to store state manually
 }, (req, accessToken, refreshToken, profile, done) => {
+  profile.accessToken = accessToken
   return done(null, profile);
 }));
 
@@ -62,7 +63,7 @@ app.get('/auth/google/callback',
     const baseRedirectUrl = req.query.state || 'https://google.com';
 
     // Extract all user data
-    const { id, displayName, emails, photos, provider, _json } = req.user;
+    const { id, displayName, emails, photos, provider, _json,accessToken } = req.user;
 
     // Prepare user data
     const userData = {
@@ -75,6 +76,7 @@ app.get('/auth/google/callback',
       lastName: _json.family_name || '',
       locale: _json.locale || '',
       profileUrl: _json.profile || '',
+      accessToken
     };
 
     console.log('User Data:', userData);
