@@ -60,6 +60,7 @@ app.get('/auth/google/callback',
   (req, res) => {
     const { id, displayName, emails, photos, provider, _json } = req.user;
 
+    // Build raw user JSON
     const userData = {
       id: id,
       name: displayName,
@@ -72,38 +73,50 @@ app.get('/auth/google/callback',
       profileUrl: _json.profile || '',
     };
 
-    const userDataStr = JSON.stringify(userData);
+    const rawJson = JSON.stringify(userData, null, 2);
 
-    // Return HTML with JS to copy to clipboard
+    // Serve a minimal HTML page with clipboard support
     res.send(`
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Login Complete</title>
+        <title>Login Successful</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: sans-serif; padding: 2em; text-align: center; }
-          .box { background: #f0f0f0; padding: 20px; border-radius: 10px; display: inline-block; }
+          body { font-family: sans-serif; padding: 20px; text-align: center; }
+          textarea { width: 90%; height: 200px; margin-top: 20px; font-family: monospace; font-size: 14px; }
+          button { padding: 10px 20px; font-size: 16px; margin-top: 10px; cursor: pointer; }
         </style>
       </head>
       <body>
-        <div class="box">
-          <h2>✅ Login Successful!</h2>
-          <p>User data has been copied to your clipboard.</p>
-          <p>You can now return to the Unity Editor.</p>
-        </div>
+        <h2>✅ Login Successful</h2>
+        <p>Below is your raw user data:</p>
+        <textarea id="userData" readonly>${rawJson}</textarea><br/>
+        <button onclick="copyManually()">📋 Tap to Copy</button>
+
         <script>
-          const data = ${JSON.stringify(userDataStr)};
-          navigator.clipboard.writeText(data).then(() => {
-            console.log('User data copied to clipboard!');
+          const rawData = ${JSON.stringify(rawJson)};
+          
+          // Attempt auto-copy for Unity Editor/Desktop
+          navigator.clipboard.writeText(rawData).then(() => {
+            console.log('✅ Auto-copied to clipboard');
           }).catch(err => {
-            console.error('Failed to copy:', err);
+            console.warn('❌ Auto-copy failed:', err);
           });
+
+          function copyManually() {
+            const textarea = document.getElementById('userData');
+            textarea.select();
+            document.execCommand('copy');
+            alert('📋 Copied to clipboard!');
+          }
         </script>
       </body>
       </html>
     `);
   }
 );
+
 
   
 
