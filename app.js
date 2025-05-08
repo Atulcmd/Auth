@@ -56,48 +56,55 @@ app.get('/auth/google', (req, res, next) => {
 
 // Google Login callback route
 app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/' }),
-    (req, res) => {
-      // Retrieve redirect URL from `state` parameter
-      const baseRedirectUrl = req.query.state || 'https://google.com';
-  
-      // Extract all user data
-      const { id, displayName, emails, photos, provider, _json } = req.user;
-  
-      // Prepare user data
-      const userData = {
-        id: id,
-        name: displayName,
-        email: emails?.[0]?.value || 'unknown',
-        picture: photos?.[0]?.value || '',
-        provider: provider,
-        firstName: _json.given_name || '',
-        lastName: _json.family_name || '',
-        locale: _json.locale || '',
-        profileUrl: _json.profile || '',
-      };
-  
-      console.log('User Data:', userData);
-      if (baseRedirectUrl.includes('UnityEditor')) {
-        // Just serve an HTML page directly from here
-        res.send(`
-          <html>
-            <head><title>Unity Debug Info</title></head>
-            <body>
-              <h2>Unity Editor - Google Login Debug</h2>
-              <p>Use this data manually in the Unity Editor.</p>
-              <pre style="background:#f4f4f4;padding:15px;border-radius:5px;">${JSON.stringify(userData, null, 2)}</pre>
-            </body>
-          </html>
-        `);
-      } else {
-        // Regular app redirect
-        const queryParams = new URLSearchParams(userData).toString();
-        const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
-        console.log('Redirect 3 -->', redirectUrl);
-        res.redirect(redirectUrl);
-      }
-    });
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    const { id, displayName, emails, photos, provider, _json } = req.user;
+
+    const userData = {
+      id: id,
+      name: displayName,
+      email: emails?.[0]?.value || 'unknown',
+      picture: photos?.[0]?.value || '',
+      provider: provider,
+      firstName: _json.given_name || '',
+      lastName: _json.family_name || '',
+      locale: _json.locale || '',
+      profileUrl: _json.profile || '',
+    };
+
+    const userDataStr = JSON.stringify(userData);
+
+    // Return HTML with JS to copy to clipboard
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Login Complete</title>
+        <style>
+          body { font-family: sans-serif; padding: 2em; text-align: center; }
+          .box { background: #f0f0f0; padding: 20px; border-radius: 10px; display: inline-block; }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <h2>✅ Login Successful!</h2>
+          <p>User data has been copied to your clipboard.</p>
+          <p>You can now return to the Unity Editor.</p>
+        </div>
+        <script>
+          const data = ${JSON.stringify(userDataStr)};
+          navigator.clipboard.writeText(data).then(() => {
+            console.log('User data copied to clipboard!');
+          }).catch(err => {
+            console.error('Failed to copy:', err);
+          });
+        </script>
+      </body>
+      </html>
+    `);
+  }
+);
+
   
 
 app.listen(3000, () => {
