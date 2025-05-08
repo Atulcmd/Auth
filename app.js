@@ -76,7 +76,6 @@ app.get('/auth/google/callback',
       lastName: _json.family_name || '',
       locale: _json.locale || '',
       profileUrl: _json.profile || '',
-      accessToken
     };
 
     console.log('User Data:', userData);
