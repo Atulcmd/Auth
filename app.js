@@ -19,7 +19,7 @@ app.use(passport.session());
 // Passport Google OAuth2.0 Strategy
 passport.use(new GoogleStrategy({
   clientID: '816883803515-tefohtu8b245hvtmuph3sa7m0as725th.apps.googleusercontent.com', // Replace with your Google Client ID
-  clientSecret: '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', // Replace with your Google Client Secret
+  clientSecret: 'secret', // Replace with your Google Client Secret
   callbackURL: 'https://google-auth-9uco.onrender.com/auth/google/callback',
   passReqToCallback: true, // Allow passing the request to store state manually
 }, (req, accessToken, refreshToken, profile, done) => {
@@ -86,7 +86,43 @@ app.get('/auth/google/callback',
       console.log('Redirect 3 -->', redirectUrl);
       
       // Redirect with full user data
-      res.redirect(redirectUrl);
+      // res.redirect(redirectUrl);
+
+
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Login Successful</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    margin-top: 100px;
+                }
+                button {
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                button:hover {
+                    background-color: #45a049;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Welcome,to mystic !</h1>
+            
+            <a href=${redirectUrl}>
+                <button>Go to Dashboard</button>
+            </a>
+        </body>
+        </html>
+    `);
     });
   
 
