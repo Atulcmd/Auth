@@ -56,38 +56,67 @@ app.get('/auth/google', (req, res, next) => {
 
 // Google Login callback route
 app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: '/' }),
-    (req, res) => {
-      // Retrieve redirect URL from `state` parameter
-      const baseRedirectUrl = req.query.state || 'https://google.com';
-  
-      // Extract all user data
-      const { id, displayName, emails, photos, provider, _json } = req.user;
-  
-      // Prepare user data
-      const userData = {
-        id: id,
-        name: displayName,
-        email: emails?.[0]?.value || 'unknown',
-        picture: photos?.[0]?.value || '',
-        provider: provider,
-        firstName: _json.given_name || '',
-        lastName: _json.family_name || '',
-        locale: _json.locale || '',
-        profileUrl: _json.profile || '',
-      };
-  
-      console.log('User Data:', userData);
-  
-      // Convert user data to query params
-      const queryParams = new URLSearchParams(userData).toString();
-      const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
-  
-      console.log('Redirect 3 -->', redirectUrl);
-      
-      // Redirect with full user data
-      res.redirect(redirectUrl);
-    });
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    const baseRedirectUrl = req.query.state || 'https://google.com';
+
+    const { id, displayName, emails, photos, provider, _json } = req.user;
+
+    const userData = {
+      id: id,
+      name: displayName,
+      email: emails?.[0]?.value || 'unknown',
+      picture: photos?.[0]?.value || '',
+      provider: provider,
+      firstName: _json.given_name || '',
+      lastName: _json.family_name || '',
+      locale: _json.locale || '',
+      profileUrl: _json.profile || '',
+    };
+
+    const queryParams = new URLSearchParams(userData).toString();
+    const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
+    console.log('Redirect Final -->', redirectUrl);
+
+    const userAgent = req.headers['user-agent'];
+
+    if (userAgent && userAgent.includes("Unity")) {
+      // Unity Editor: auto copy to clipboard
+      return res.send(`
+        <html>
+          <body>
+            <h3>Login successful!</h3>
+            <p>Copied user data to clipboard.</p>
+            <script>
+              const text = ${JSON.stringify(JSON.stringify(redirectUrl))};
+              navigator.clipboard.writeText(text).then(() => {
+                console.log("Copied to clipboard");
+              }).catch(err => {
+                console.error("Clipboard error:", err);
+              });
+            </script>
+          </body>
+        </html>
+      `);
+    } else {
+      // Mobile (Android/iOS): show sample page with button
+      return res.send(`
+        <html>
+          <head><title>Login Successful</title></head>
+          <body style="font-family:sans-serif;text-align:center;padding-top:50px;">
+            <h2>Login Successful!</h2>
+            <p>Click the button below to continue:</p>
+            <button onclick="window.location.href='${redirectUrl}'" 
+                    style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+              Continue
+            </button>
+          </body>
+        </html>
+      `);
+    }
+  }
+);
+
   
 
 app.listen(3000, () => {
