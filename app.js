@@ -59,13 +59,10 @@ app.get('/auth/google', (req, res, next) => {
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    // Retrieve redirect URL from `state` parameter
     const baseRedirectUrl = req.query.state || 'https://google.com';
 
-    // Extract all user data
-    const { id, displayName, emails, photos, provider, _json,accessToken } = req.user;
+    const { id, displayName, emails, photos, provider, _json } = req.user;
 
-    // Prepare user data
     const userData = {
       id: id,
       name: displayName,
@@ -78,37 +75,51 @@ app.get('/auth/google/callback',
       profileUrl: _json.profile || '',
     };
 
-    console.log('User Data:', userData);
-
-    // Convert user data to query params
     const queryParams = new URLSearchParams(userData).toString();
     const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
 
+    console.log('User Data:', userData);
     console.log('Redirect 3 -->', redirectUrl);
-    
-    // Redirect with full user data
-    // res.redirect(redirectUrl);
-
 
     res.send(`
       <!DOCTYPE html>
       <html>
       <head>
-          <title>Login Successful</title>
+          <title>Welcome to Mystic Motors</title>
           <style>
               body {
+                  margin: 0;
+                  background-color: #303030;
                   font-family: Arial, sans-serif;
                   text-align: center;
-                  margin-top: 100px;
+                  color: #ffffff;
+              }
+              #header {
+                  display: block;
+                  margin-top: 40px;
+                  line-height: 50px;
+                  background-color: #202020;
+                  font-size: 24px;
+                  padding: 10px 0;
+              }
+              #checkmark {
+                  color: #00ff00;
+                  margin-right: 10px;
+              }
+              #message {
+                  display: block;
+                  margin-top: 30px;
+                  font-size: 18px;
               }
               button {
-                  padding: 10px 20px;
+                  margin-top: 30px;
+                  padding: 12px 24px;
                   font-size: 16px;
                   background-color: #4CAF50;
                   color: white;
                   border: none;
                   cursor: pointer;
-                  border-radius: 5px;
+                  border-radius: 6px;
               }
               button:hover {
                   background-color: #45a049;
@@ -116,13 +127,14 @@ app.get('/auth/google/callback',
           </style>
       </head>
       <body>
-          <h1>Welcome to Mystic!</h1>
-          <p>Your login was successful.</p>
-          <button onclick="copyAndRedirect()">Go to Dashboard</button>
-    
+          <span id="header"><span id="checkmark">✔</span> LOGIN SUCCESSFUL</span>
+          <span id="message">Now you can return to Mystic Motors.</span>
+          <br>
+          <button onclick="copyAndRedirect()">Open the Game</button>
+
           <script>
               const redirectUrl = "${redirectUrl}";
-    
+
               function copyAndRedirect() {
                   navigator.clipboard.writeText(redirectUrl)
                       .then(() => {
@@ -131,7 +143,6 @@ app.get('/auth/google/callback',
                       })
                       .catch(err => {
                           console.error('Failed to copy: ', err);
-                          // Even if copy fails, still redirect
                           window.location.href = redirectUrl;
                       });
               }
@@ -139,8 +150,9 @@ app.get('/auth/google/callback',
       </body>
       </html>
     `);
-    
-  });
+  }
+);
+
   
 
 app.listen(3000, () => {
