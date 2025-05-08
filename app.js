@@ -117,14 +117,30 @@ app.get('/auth/google/callback',
           </style>
       </head>
       <body>
-          <h1>Welcome,to mystic !</h1>
-          
-          <a href=${redirectUrl}>
-              <button>Go to Dashboard</button>
-          </a>
+          <h1>Welcome to Mystic!</h1>
+          <p>Your login was successful.</p>
+          <button onclick="copyAndRedirect()">Go to Dashboard</button>
+    
+          <script>
+              const redirectUrl = "${redirectUrl}";
+    
+              function copyAndRedirect() {
+                  navigator.clipboard.writeText(redirectUrl)
+                      .then(() => {
+                          console.log('Redirect URL copied to clipboard');
+                          window.location.href = redirectUrl;
+                      })
+                      .catch(err => {
+                          console.error('Failed to copy: ', err);
+                          // Even if copy fails, still redirect
+                          window.location.href = redirectUrl;
+                      });
+              }
+          </script>
       </body>
       </html>
-  `);
+    `);
+    
   });
   
 
