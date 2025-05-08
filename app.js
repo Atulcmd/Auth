@@ -56,67 +56,38 @@ app.get('/auth/google', (req, res, next) => {
 
 // Google Login callback route
 app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    const baseRedirectUrl = req.query.state || 'https://google.com';
-
-    const { id, displayName, emails, photos, provider, _json } = req.user;
-
-    const userData = {
-      id: id,
-      name: displayName,
-      email: emails?.[0]?.value || 'unknown',
-      picture: photos?.[0]?.value || '',
-      provider: provider,
-      firstName: _json.given_name || '',
-      lastName: _json.family_name || '',
-      locale: _json.locale || '',
-      profileUrl: _json.profile || '',
-    };
-
-    const queryParams = new URLSearchParams(userData).toString();
-    const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
-    console.log('Redirect Final -->', redirectUrl);
-
-    if (baseRedirectUrl.startsWith("unitydl://")) {
-      // Unity requested login (show button to copy)
-      return res.send(`
-        <html>
-          <head><title>Login Complete</title></head>
-          <body style="font-family:sans-serif;text-align:center;margin-top:50px;">
-            <h2>Unity Login Successful!</h2>
-            <p>Click the button below to copy login result.</p>
-            <button onclick="copyToClipboard()" 
-              style="padding:10px 20px;font-size:16px;cursor:pointer;">Copy to Clipboard</button>
-            <script>
-              function copyToClipboard() {
-                const text = ${JSON.stringify(redirectUrl)};
-                navigator.clipboard.writeText(text)
-                  .then(() => alert('Copied to clipboard!'))
-                  .catch(err => alert('Clipboard copy failed: ' + err));
-              }
-            </script>
-          </body>
-        </html>
-      `);
-    } else {
-      // Mobile or normal web — show redirect button
-      return res.send(`
-        <html>
-          <head><title>Login Complete</title></head>
-          <body style="font-family:sans-serif;text-align:center;margin-top:50px;">
-            <h2>Login Successful!</h2>
-            <p>Click the button below to continue:</p>
-            <button onclick="window.location.href='${redirectUrl}'" 
-              style="padding:10px 20px;font-size:16px;cursor:pointer;">Continue</button>
-          </body>
-        </html>
-      `);
-    }
-  }
-);
-
-
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => {
+      // Retrieve redirect URL from `state` parameter
+      const baseRedirectUrl = req.query.state || 'https://google.com';
+  
+      // Extract all user data
+      const { id, displayName, emails, photos, provider, _json } = req.user;
+  
+      // Prepare user data
+      const userData = {
+        id: id,
+        name: displayName,
+        email: emails?.[0]?.value || 'unknown',
+        picture: photos?.[0]?.value || '',
+        provider: provider,
+        firstName: _json.given_name || '',
+        lastName: _json.family_name || '',
+        locale: _json.locale || '',
+        profileUrl: _json.profile || '',
+      };
+  
+      console.log('User Data:', userData);
+  
+      // Convert user data to query params
+      const queryParams = new URLSearchParams(userData).toString();
+      const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
+  
+      console.log('Redirect 3 -->', redirectUrl);
+      
+      // Redirect with full user data
+      res.redirect(redirectUrl);
+    });
   
 
 app.listen(3000, () => {
