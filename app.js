@@ -78,44 +78,44 @@ app.get('/auth/google/callback',
     const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
     console.log('Redirect Final -->', redirectUrl);
 
-    const userAgent = req.headers['user-agent'];
-
-    if (userAgent && userAgent.includes("Unity")) {
-      // Unity Editor: auto copy to clipboard
+    if (baseRedirectUrl.startsWith("unitydl://")) {
+      // Unity requested login (show button to copy)
       return res.send(`
         <html>
-          <body>
-            <h3>Login successful!</h3>
-            <p>Copied user data to clipboard.</p>
+          <head><title>Login Complete</title></head>
+          <body style="font-family:sans-serif;text-align:center;margin-top:50px;">
+            <h2>Unity Login Successful!</h2>
+            <p>Click the button below to copy login result.</p>
+            <button onclick="copyToClipboard()" 
+              style="padding:10px 20px;font-size:16px;cursor:pointer;">Copy to Clipboard</button>
             <script>
-              const text = ${JSON.stringify(JSON.stringify(redirectUrl))};
-              navigator.clipboard.writeText(text).then(() => {
-                console.log("Copied to clipboard");
-              }).catch(err => {
-                console.error("Clipboard error:", err);
-              });
+              function copyToClipboard() {
+                const text = ${JSON.stringify(redirectUrl)};
+                navigator.clipboard.writeText(text)
+                  .then(() => alert('Copied to clipboard!'))
+                  .catch(err => alert('Clipboard copy failed: ' + err));
+              }
             </script>
           </body>
         </html>
       `);
     } else {
-      // Mobile (Android/iOS): show sample page with button
+      // Mobile or normal web — show redirect button
       return res.send(`
         <html>
-          <head><title>Login Successful</title></head>
-          <body style="font-family:sans-serif;text-align:center;padding-top:50px;">
+          <head><title>Login Complete</title></head>
+          <body style="font-family:sans-serif;text-align:center;margin-top:50px;">
             <h2>Login Successful!</h2>
             <p>Click the button below to continue:</p>
             <button onclick="window.location.href='${redirectUrl}'" 
-                    style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
-              Continue
-            </button>
+              style="padding:10px 20px;font-size:16px;cursor:pointer;">Continue</button>
           </body>
         </html>
       `);
     }
   }
 );
+
 
   
 
