@@ -78,15 +78,25 @@ app.get('/auth/google/callback',
       };
   
       console.log('User Data:', userData);
-  
-      // Convert user data to query params
-      const queryParams = new URLSearchParams(userData).toString();
-      const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
-  
-      console.log('Redirect 3 -->', redirectUrl);
-      
-      // Redirect with full user data
-      res.redirect(redirectUrl);
+      if (baseRedirectUrl.includes('UnityEditor')) {
+        // Just serve an HTML page directly from here
+        res.send(`
+          <html>
+            <head><title>Unity Debug Info</title></head>
+            <body>
+              <h2>Unity Editor - Google Login Debug</h2>
+              <p>Use this data manually in the Unity Editor.</p>
+              <pre style="background:#f4f4f4;padding:15px;border-radius:5px;">${JSON.stringify(userData, null, 2)}</pre>
+            </body>
+          </html>
+        `);
+      } else {
+        // Regular app redirect
+        const queryParams = new URLSearchParams(userData).toString();
+        const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
+        console.log('Redirect 3 -->', redirectUrl);
+        res.redirect(redirectUrl);
+      }
     });
   
 
