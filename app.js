@@ -56,68 +56,38 @@ app.get('/auth/google', (req, res, next) => {
 
 // Google Login callback route
 app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    const { id, displayName, emails, photos, provider, _json } = req.user;
-
-    // Build raw user JSON
-    const userData = {
-      id: id,
-      name: displayName,
-      email: emails?.[0]?.value || 'unknown',
-      picture: photos?.[0]?.value || '',
-      provider: provider,
-      firstName: _json.given_name || '',
-      lastName: _json.family_name || '',
-      locale: _json.locale || '',
-      profileUrl: _json.profile || '',
-    };
-
-    const rawJson = JSON.stringify(userData, null, 2);
-
-    // Serve a minimal HTML page with clipboard support
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Login Successful</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body { font-family: sans-serif; padding: 20px; text-align: center; }
-          textarea { width: 90%; height: 200px; margin-top: 20px; font-family: monospace; font-size: 14px; }
-          button { padding: 10px 20px; font-size: 16px; margin-top: 10px; cursor: pointer; }
-        </style>
-      </head>
-      <body>
-        <h2>✅ Login Successful</h2>
-        <p>Below is your raw user data:</p>
-        <textarea id="userData" readonly>${rawJson}</textarea><br/>
-        <button onclick="copyManually()">📋 Tap to Copy</button>
-
-        <script>
-          const rawData = ${JSON.stringify(rawJson)};
-          
-          // Attempt auto-copy for Unity Editor/Desktop
-          navigator.clipboard.writeText(rawData).then(() => {
-            console.log('✅ Auto-copied to clipboard');
-          }).catch(err => {
-            console.warn('❌ Auto-copy failed:', err);
-          });
-
-          function copyManually() {
-            const textarea = document.getElementById('userData');
-            textarea.select();
-            document.execCommand('copy');
-            alert('📋 Copied to clipboard!');
-          }
-        </script>
-      </body>
-      </html>
-    `);
-  }
-);
-
-
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => {
+      // Retrieve redirect URL from `state` parameter
+      const baseRedirectUrl = req.query.state || 'https://google.com';
+  
+      // Extract all user data
+      const { id, displayName, emails, photos, provider, _json } = req.user;
+  
+      // Prepare user data
+      const userData = {
+        id: id,
+        name: displayName,
+        email: emails?.[0]?.value || 'unknown',
+        picture: photos?.[0]?.value || '',
+        provider: provider,
+        firstName: _json.given_name || '',
+        lastName: _json.family_name || '',
+        locale: _json.locale || '',
+        profileUrl: _json.profile || '',
+      };
+  
+      console.log('User Data:', userData);
+  
+      // Convert user data to query params
+      const queryParams = new URLSearchParams(userData).toString();
+      const redirectUrl = `${baseRedirectUrl}?${queryParams}`;
+  
+      console.log('Redirect 3 -->', redirectUrl);
+      
+      // Redirect with full user data
+      res.redirect(redirectUrl);
+    });
   
 
 app.listen(3000, () => {
